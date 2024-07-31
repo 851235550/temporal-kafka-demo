@@ -53,15 +53,10 @@ func ProduceMsg(ctx context.Context) error {
 func CronProducerWorkflow(ctx workflow.Context) error {
 	// Define activity options
 	ao := workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute,
+		StartToCloseTimeout: time.Second * 20,
 	}
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	// Execute the activity
-	err := workflow.ExecuteActivity(ctx, ProduceMsg).Get(ctx, nil)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return workflow.ExecuteActivity(ctx, ProduceMsg).Get(ctx, nil)
 }

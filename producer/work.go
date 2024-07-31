@@ -23,8 +23,8 @@ func StartWorker(c client.Client) {
 
 	// Start a workflow execution
 	we, err := c.ExecuteWorkflow(context.Background(), client.StartWorkflowOptions{
-		ID:                       "kafka-cron-produce-workflow",
-		TaskQueue:                "kafka-produce-queue",
+		ID:                       "kafka-produce-workflow",
+		TaskQueue:                "producer-task-queue",
 		WorkflowExecutionTimeout: time.Hour,
 		CronSchedule:             "*/1 * * * *",
 	}, CronProducerWorkflow)
