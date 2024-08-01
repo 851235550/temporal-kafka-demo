@@ -38,6 +38,7 @@ And then you can access temporal web UI: http://localhost:8088/
    kafka-topics.sh --create --topic temporal-topic --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1
 ``` 
 to create a topic named `temporal-topic`
+
 4. Check topic was created. 
 ```
 // In kafka container exec:
