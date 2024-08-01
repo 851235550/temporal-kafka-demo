@@ -15,7 +15,15 @@ const (
 	kafkaBrokerURL = "localhost:9092"
 )
 
-func ProduceMsg(_ context.Context, msg string) error {
+var (
+	childWorkerCnt = 200
+)
+
+func SetChildWorkerCnt(cnt int) {
+	childWorkerCnt = cnt
+}
+
+func ProduceMsg(ctx context.Context, msg string) error {
 	// Kafka writer configuration
 	writer := &kafka.Writer{
 		Addr:     kafka.TCP(kafkaBrokerURL),
@@ -23,22 +31,23 @@ func ProduceMsg(_ context.Context, msg string) error {
 		Balancer: &kafka.LeastBytes{},
 	}
 
+	// Close the writer
+	defer func() {
+		if err := writer.Close(); err != nil {
+			log.Printf("Error closing Kafka writer: %v", err)
+		}
+	}()
+
 	log.Printf("Start produce msg: %s\n", msg)
 	message := kafka.Message{
 		Value: []byte(msg),
 	}
-	err := writer.WriteMessages(context.Background(), message)
+	err := writer.WriteMessages(ctx, message)
 	if err != nil {
 		log.Printf("Error writing message to Kafka: %v", err)
 		return err
 	}
 	log.Printf("End produce msg: %s\n", msg)
-
-	// Close the writer
-	if err := writer.Close(); err != nil {
-		log.Printf("Error closing Kafka writer: %v", err)
-		return err
-	}
 
 	return nil
 }
@@ -47,8 +56,8 @@ func CronParentProducerWorkflow(ctx workflow.Context) error {
 	logger := workflow.GetLogger(ctx)
 
 	childWorkflowResults := make([]workflow.Future, 0, 200)
-	// Start 200 child workflows asynchronously
-	for i := 0; i < 200; i++ {
+	// Start children workflows asynchronously
+	for i := 0; i < childWorkerCnt; i++ {
 		// Define child workflow options
 		childWorkflowOptions := workflow.ChildWorkflowOptions{
 			WorkflowID: fmt.Sprintf("child-%d", i),
@@ -87,15 +96,3 @@ func ChildWorkflow(ctx workflow.Context, msg string) error {
 
 	return err
 }
-
-// // CronProducerWorkflow is the cron workflow that triggers the producer activity every minute
-// func CronProducerWorkflow(ctx workflow.Context) error {
-// 	// Define activity options
-// 	ao := workflow.ActivityOptions{
-// 		StartToCloseTimeout: time.Second * 20,
-// 	}
-// 	ctx = workflow.WithActivityOptions(ctx, ao)
-
-// 	// Execute the activity
-// 	return workflow.ExecuteActivity(ctx, ProduceMsg).Get(ctx, nil)
-// }

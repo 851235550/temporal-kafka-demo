@@ -13,14 +13,31 @@ import (
 const (
 	kafkaTopic     = "temporal-topic"
 	kafkaBrokerURL = "localhost:9092"
+	groupID        = "consumer-group-1"
 )
+
+var (
+	childWorkerCnt = 200
+)
+
+func SetChildWorkerCnt(cnt int) {
+	childWorkerCnt = cnt
+}
 
 func ConsumerMsg(_ context.Context) error {
 	// Kafka reader configuration
 	reader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: []string{kafkaBrokerURL},
 		Topic:   kafkaTopic,
+		GroupID: groupID,
 	})
+
+	// Ensure to close the reader in case of panic or exit
+	defer func() {
+		if err := reader.Close(); err != nil {
+			log.Printf("Error closing Kafka reader: %v", err)
+		}
+	}()
 
 	msg, err := reader.ReadMessage(context.Background())
 	if err != nil {
@@ -29,12 +46,6 @@ func ConsumerMsg(_ context.Context) error {
 	}
 	log.Printf("Message received: key=%s value=%s offset=%d", string(msg.Key), string(msg.Value), msg.Offset)
 
-	// Close the reader
-	if err := reader.Close(); err != nil {
-		log.Printf("Error closing Kafka reader: %v", err)
-		return err
-	}
-
 	return nil
 }
 
@@ -42,7 +53,7 @@ func CronParentConsumerWorkflow(ctx workflow.Context) error {
 	logger := workflow.GetLogger(ctx)
 
 	childWorkflowResults := make([]workflow.Future, 0, 200)
-	for i := 0; i < 200; i++ {
+	for i := 0; i < childWorkerCnt; i++ {
 		opts := workflow.ChildWorkflowOptions{
 			WorkflowID: fmt.Sprintf("consumer-child-%d", i),
 			TaskQueue:  "consumer-child-task-queue",
@@ -80,12 +91,3 @@ func ChildWorkflow(ctx workflow.Context) error {
 
 	return err
 }
-
-// CronConsumerWorkflow is the cron workflow that triggers the consumer workflow every two minutes
-// func CronConsumerWorkflow(ctx workflow.Context) error {
-// 	cronOpts := workflow.ChildWorkflowOptions{
-// 		CronSchedule: "*/2 * * * *", // Every two minutes
-// 	}
-// 	ctx = workflow.WithChildOptions(ctx, cronOpts)
-// 	return workflow.ExecuteChildWorkflow(ctx, ConsumerWorkflow).Get(ctx, nil)
-// }

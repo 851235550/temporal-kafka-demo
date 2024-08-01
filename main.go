@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 	"os/signal"
@@ -10,7 +11,15 @@ import (
 	"syscall"
 )
 
+var workflowCnt int
+
 func main() {
+	flag.IntVar(&workflowCnt, "wf-cnt", 200, "The number of sub-producer and sub-consumer workflows. The default value is 200, which means there will be 200 sub-production flows and 200 sub-consumption flows")
+	flag.Parse()
+
+	consumer.SetChildWorkerCnt(workflowCnt)
+	producer.SetChildWorkerCnt(workflowCnt)
+
 	// Initialize Temporal client
 	c, err := config.NewTemporalClient()
 	if err != nil {
@@ -19,10 +28,6 @@ func main() {
 	defer c.Close()
 
 	log.Println("Start work...")
-
-	// go producer.ProducerWorkflow()
-
-	// go consumer.ConsumerWorkflow()
 
 	// Start producer and consumer workers
 	go producer.StartWorker(c)
