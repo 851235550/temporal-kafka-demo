@@ -73,6 +73,10 @@ To check
 
 You can see the producer and consumer workflow on the temporal web UI(http://localhost:8088/), showing the parent workflow first, then the child production flow every minute, and the child consumption flow every 2 minutes.
 
+To test
+
+`go test ./...`
+
 
 ----
 
