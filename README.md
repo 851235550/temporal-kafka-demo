@@ -63,13 +63,15 @@ To run
 ```
 ./suger
 ```
-You can also specify workflow count with `--wf-cnt` option.
+You can also specify workflow count with `--wf-cnt` option. 
 ```
 ./suger --wf-cnt=2
 ```
+**--wf-cnt=2** indicates that 2 sub workflows will be initiated for both the production workflow and the consumption workflow
 
 To check
-You can see the producer and consumer workflow on the temporal web UI, showing the parent workflow first, then the child production flow every minute, and the child consumption flow every 2 minutes.
+
+You can see the producer and consumer workflow on the temporal web UI(http://localhost:8088/), showing the parent workflow first, then the child production flow every minute, and the child consumption flow every 2 minutes.
 
 
 ----
