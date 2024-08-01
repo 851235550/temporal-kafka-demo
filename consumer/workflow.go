@@ -24,7 +24,7 @@ func SetChildWorkerCnt(cnt int) {
 	childWorkerCnt = cnt
 }
 
-func ConsumerMsg(_ context.Context) error {
+func ConsumeMsg(_ context.Context) error {
 	// Kafka reader configuration
 	reader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: []string{kafkaBrokerURL},
@@ -83,7 +83,7 @@ func ChildWorkflow(ctx workflow.Context) error {
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
 	// Execute the activity
-	err := workflow.ExecuteActivity(ctx, ConsumerMsg).Get(ctx, nil)
+	err := workflow.ExecuteActivity(ctx, ConsumeMsg).Get(ctx, nil)
 	if err != nil {
 		logger := workflow.GetLogger(ctx)
 		logger.Error("Failed to execute activity ConsumerMsg", "Error", err)

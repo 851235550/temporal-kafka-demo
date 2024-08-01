@@ -13,11 +13,11 @@ func StartWorker(c client.Client) {
 	w := worker.New(c, "consumer-task-queue", worker.Options{})
 	w.RegisterWorkflow(CronParentConsumerWorkflow)
 	w.RegisterWorkflow(ChildWorkflow)
-	w.RegisterActivity(ConsumerMsg)
+	w.RegisterActivity(ConsumeMsg)
 
 	childWorker := worker.New(c, "consumer-child-task-queue", worker.Options{})
 	childWorker.RegisterWorkflow(ChildWorkflow)
-	childWorker.RegisterActivity(ConsumerMsg)
+	childWorker.RegisterActivity(ConsumeMsg)
 
 	go func() {
 		err := w.Run(worker.InterruptCh())
