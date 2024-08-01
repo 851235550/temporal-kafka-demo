@@ -15,9 +15,7 @@ const (
 	kafkaBrokerURL = "localhost:9092"
 )
 
-// ProduceMsg is the main workflow for producing messages to Kafka
 func ProduceMsg(_ context.Context, msg string) error {
-	// fmt.Println("Producing message:", msg)
 	// Kafka writer configuration
 	writer := &kafka.Writer{
 		Addr:     kafka.TCP(kafkaBrokerURL),
@@ -57,7 +55,7 @@ func CronParentProducerWorkflow(ctx workflow.Context) error {
 			TaskQueue:  "child-task-queue",
 		}
 		childCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)
-		future := workflow.ExecuteChildWorkflow(childCtx, ChildWorkflow, fmt.Sprintf("msg-%d", i))
+		future := workflow.ExecuteChildWorkflow(childCtx, ChildWorkflow, fmt.Sprintf("child-%d-msg-%d", i, i))
 		childWorkflowResults = append(childWorkflowResults, future)
 	}
 
@@ -86,6 +84,7 @@ func ChildWorkflow(ctx workflow.Context, msg string) error {
 		logger := workflow.GetLogger(ctx)
 		logger.Error("Failed to execute activity ProduceMsg", "Error", err)
 	}
+
 	return err
 }
 

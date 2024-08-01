@@ -10,7 +10,7 @@ import (
 func TestConsumerWorkflow(t *testing.T) {
 	s := testsuite.WorkflowTestSuite{}
 	env := s.NewTestWorkflowEnvironment()
-	env.ExecuteWorkflow(consumer.ConsumerWorkflow)
+	env.ExecuteWorkflow(consumer.ConsumerMsg)
 	if !env.IsWorkflowCompleted() {
 		t.Fatal("Workflow not completed")
 	}
