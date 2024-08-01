@@ -56,7 +56,7 @@ func CronParentConsumerWorkflow(ctx workflow.Context) error {
 	for i := 0; i < childWorkerCnt; i++ {
 		opts := workflow.ChildWorkflowOptions{
 			WorkflowID: fmt.Sprintf("consumer-child-%d", i),
-			TaskQueue:  "consumer-child-task-queue",
+			TaskQueue:  childTaskQueueName,
 		}
 		childCtx := workflow.WithChildOptions(ctx, opts)
 		future := workflow.ExecuteChildWorkflow(childCtx, ChildWorkflow)

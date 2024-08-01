@@ -60,8 +60,8 @@ func CronParentProducerWorkflow(ctx workflow.Context) error {
 	for i := 0; i < childWorkerCnt; i++ {
 		// Define child workflow options
 		childWorkflowOptions := workflow.ChildWorkflowOptions{
-			WorkflowID: fmt.Sprintf("child-%d", i),
-			TaskQueue:  "child-task-queue",
+			WorkflowID: fmt.Sprintf("producer-child-%d", i),
+			TaskQueue:  childTaskQueueName,
 		}
 		childCtx := workflow.WithChildOptions(ctx, childWorkflowOptions)
 		future := workflow.ExecuteChildWorkflow(childCtx, ChildWorkflow, fmt.Sprintf("child-%d-msg-%d", i, i))

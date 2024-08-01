@@ -9,13 +9,21 @@ import (
 	"go.temporal.io/sdk/worker"
 )
 
+const (
+	consumerWorkflowID  = "kafka-consumer-workflow"
+	parentTaskQueueName = "consumer-task-queue"
+	childTaskQueueName  = "consumer-child-task-queue"
+
+	cronEveryTwoMim = "*/2 * * * *"
+)
+
 func StartWorker(c client.Client) {
-	w := worker.New(c, "consumer-task-queue", worker.Options{})
+	w := worker.New(c, parentTaskQueueName, worker.Options{})
 	w.RegisterWorkflow(CronParentConsumerWorkflow)
 	w.RegisterWorkflow(ChildWorkflow)
 	w.RegisterActivity(ConsumeMsg)
 
-	childWorker := worker.New(c, "consumer-child-task-queue", worker.Options{})
+	childWorker := worker.New(c, childTaskQueueName, worker.Options{})
 	childWorker.RegisterWorkflow(ChildWorkflow)
 	childWorker.RegisterActivity(ConsumeMsg)
 
@@ -35,10 +43,10 @@ func StartWorker(c client.Client) {
 
 	// Start a workflow execution
 	we, err := c.ExecuteWorkflow(context.Background(), client.StartWorkflowOptions{
-		ID:                       "kafka-consumer-workflow",
-		TaskQueue:                "consumer-task-queue",
+		ID:                       consumerWorkflowID,
+		TaskQueue:                parentTaskQueueName,
 		WorkflowExecutionTimeout: time.Hour,
-		CronSchedule:             "*/2 * * * *", // Ensure this schedule is correct
+		CronSchedule:             cronEveryTwoMim, // Ensure this schedule is correct
 	}, CronParentConsumerWorkflow)
 	if err != nil {
 		log.Fatalf("Failed to start workflow: %v", err)
