@@ -52,7 +52,7 @@ func ConsumeMsg(_ context.Context) error {
 func CronParentConsumerWorkflow(ctx workflow.Context) error {
 	logger := workflow.GetLogger(ctx)
 
-	childWorkflowResults := make([]workflow.Future, 0, 200)
+	childWorkflowResults := make([]workflow.Future, 0, childWorkerCnt)
 	for i := 0; i < childWorkerCnt; i++ {
 		opts := workflow.ChildWorkflowOptions{
 			WorkflowID: fmt.Sprintf("consumer-child-%d", i),

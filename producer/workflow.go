@@ -55,7 +55,7 @@ func ProduceMsg(ctx context.Context, msg string) error {
 func CronParentProducerWorkflow(ctx workflow.Context) error {
 	logger := workflow.GetLogger(ctx)
 
-	childWorkflowResults := make([]workflow.Future, 0, 200)
+	childWorkflowResults := make([]workflow.Future, 0, childWorkerCnt)
 	// Start children workflows asynchronously
 	for i := 0; i < childWorkerCnt; i++ {
 		// Define child workflow options
