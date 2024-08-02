@@ -3,6 +3,7 @@ package consumer
 import (
 	"context"
 	"log"
+	"suger/config"
 	"time"
 
 	"go.temporal.io/sdk/client"
@@ -18,6 +19,11 @@ const (
 )
 
 func StartWorker(c client.Client) {
+	if err := config.TerminateWorker(c, consumerWorkflowID); err != nil {
+		log.Fatalf("Terminate consumer workflow was error. workflowID: %s, err: %s", consumerWorkflowID, err.Error())
+		return
+	}
+
 	w := worker.New(c, parentTaskQueueName, worker.Options{})
 	w.RegisterWorkflow(CronParentConsumerWorkflow)
 	w.RegisterWorkflow(ChildWorkflow)
