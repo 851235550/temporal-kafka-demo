@@ -4,15 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"suger/config"
 	"time"
 
 	"github.com/segmentio/kafka-go"
 	"go.temporal.io/sdk/workflow"
-)
-
-const (
-	kafkaTopic     = "temporal-topic"
-	kafkaBrokerURL = "localhost:9092"
 )
 
 var (
@@ -25,11 +21,7 @@ func SetChildWorkerCnt(cnt int) {
 
 func ProduceMsg(ctx context.Context, msg string) error {
 	// Kafka writer configuration
-	writer := &kafka.Writer{
-		Addr:     kafka.TCP(kafkaBrokerURL),
-		Topic:    kafkaTopic,
-		Balancer: &kafka.LeastBytes{},
-	}
+	writer := config.NewKafkaWriter()
 
 	// Close the writer
 	defer func() {

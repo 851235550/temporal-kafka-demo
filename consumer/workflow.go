@@ -4,16 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"suger/config"
 	"time"
 
-	"github.com/segmentio/kafka-go"
 	"go.temporal.io/sdk/workflow"
-)
-
-const (
-	kafkaTopic     = "temporal-topic"
-	kafkaBrokerURL = "localhost:9092"
-	groupID        = "consumer-group-1"
 )
 
 var (
@@ -26,11 +20,7 @@ func SetChildWorkerCnt(cnt int) {
 
 func ConsumeMsg(_ context.Context) error {
 	// Kafka reader configuration
-	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: []string{kafkaBrokerURL},
-		Topic:   kafkaTopic,
-		GroupID: groupID,
-	})
+	reader := config.NewKafkaReader()
 
 	// Ensure to close the reader in case of panic or exit
 	defer func() {
