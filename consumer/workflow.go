@@ -4,16 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"suger/config"
 	"time"
 
-	"github.com/segmentio/kafka-go"
 	"go.temporal.io/sdk/workflow"
-)
-
-const (
-	kafkaTopic     = "temporal-topic"
-	kafkaBrokerURL = "localhost:9092"
-	groupID        = "consumer-group-1"
 )
 
 var (
@@ -26,11 +20,7 @@ func SetChildWorkerCnt(cnt int) {
 
 func ConsumeMsg(_ context.Context) error {
 	// Kafka reader configuration
-	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers: []string{kafkaBrokerURL},
-		Topic:   kafkaTopic,
-		GroupID: groupID,
-	})
+	reader := config.NewKafkaReader()
 
 	// Ensure to close the reader in case of panic or exit
 	defer func() {
@@ -44,7 +34,7 @@ func ConsumeMsg(_ context.Context) error {
 		log.Printf("Error reading message from Kafka: %v", err)
 		return err
 	}
-	log.Printf("Message received: key=%s value=%s offset=%d", string(msg.Key), string(msg.Value), msg.Offset)
+	log.Printf("Message received: value=%s offset=%d", string(msg.Value), msg.Offset)
 
 	return nil
 }
@@ -56,7 +46,7 @@ func CronParentConsumerWorkflow(ctx workflow.Context) error {
 	for i := 0; i < childWorkerCnt; i++ {
 		opts := workflow.ChildWorkflowOptions{
 			WorkflowID: fmt.Sprintf("consumer-child-%d", i),
-			TaskQueue:  childTaskQueueName,
+			// TaskQueue:  childTaskQueueName,
 		}
 		childCtx := workflow.WithChildOptions(ctx, opts)
 		future := workflow.ExecuteChildWorkflow(childCtx, ChildWorkflow)
