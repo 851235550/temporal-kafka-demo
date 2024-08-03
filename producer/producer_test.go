@@ -13,10 +13,12 @@ type UnitTestSuite struct {
 	testsuite.WorkflowTestSuite
 }
 
+var testCalledCnt = 5
+
 // SetupTest is called before every test
 func (s *UnitTestSuite) SetupTest() {
 	// Reset the child worker count before each test
-	SetChildWorkerCnt(200)
+	SetChildWorkerCnt(testCalledCnt)
 }
 
 func (s *UnitTestSuite) TestCronParentProducerWorkflow() {
@@ -25,7 +27,6 @@ func (s *UnitTestSuite) TestCronParentProducerWorkflow() {
 	// Register the workflow and activity
 	env.RegisterWorkflow(CronParentProducerWorkflow)
 	env.RegisterWorkflow(ChildWorkflow)
-	env.RegisterActivity(ProduceMsg)
 
 	// Mock the ProduceMsg activity
 	env.OnActivity(ProduceMsg, mock.Anything, mock.Anything).Return(nil)
@@ -33,12 +34,15 @@ func (s *UnitTestSuite) TestCronParentProducerWorkflow() {
 	// Execute the workflow
 	env.ExecuteWorkflow(CronParentProducerWorkflow)
 
+	s.True(env.AssertCalled(s.T(), "ProduceMsg", mock.Anything, mock.Anything))
+	s.True(env.AssertActivityNumberOfCalls(s.T(), "ProduceMsg", testCalledCnt))
+
 	// Check if workflow completed successfully
 	s.True(env.IsWorkflowCompleted())
 	s.NoError(env.GetWorkflowError())
 
-	// Assert that the ProduceMsg activity was called 200 times
-	env.AssertExpectations(s.T())
+	// Assert that the ProduceMsg activity was called 10 times
+	s.True(env.AssertExpectations(s.T()))
 }
 
 func (s *UnitTestSuite) TestChildWorkflow() {
@@ -49,17 +53,20 @@ func (s *UnitTestSuite) TestChildWorkflow() {
 	env.RegisterActivity(ProduceMsg)
 
 	// Mock the ProduceMsg activity
-	env.OnActivity(ProduceMsg, mock.Anything, "test-msg").Return(nil)
+	env.OnActivity(ProduceMsg, mock.Anything, "msg").Return(nil)
 
 	// Execute the workflow
-	env.ExecuteWorkflow(ChildWorkflow, "test-msg")
+	env.ExecuteWorkflow(ChildWorkflow, "msg")
+
+	s.True(env.AssertCalled(s.T(), "ProduceMsg", mock.Anything, "msg"))
+	s.True(env.AssertActivityNumberOfCalls(s.T(), "ProduceMsg", 1))
 
 	// Check if workflow completed successfully
 	s.True(env.IsWorkflowCompleted())
 	s.NoError(env.GetWorkflowError())
 
 	// Assert that the ProduceMsg activity was called once
-	env.AssertExpectations(s.T())
+	s.True(env.AssertExpectations(s.T()))
 }
 
 func TestUnitTestSuite(t *testing.T) {

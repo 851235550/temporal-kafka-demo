@@ -44,7 +44,7 @@ func ConsumeMsg(_ context.Context) error {
 		log.Printf("Error reading message from Kafka: %v", err)
 		return err
 	}
-	log.Printf("Message received: key=%s value=%s offset=%d", string(msg.Key), string(msg.Value), msg.Offset)
+	log.Printf("Message received: value=%s offset=%d", string(msg.Value), msg.Offset)
 
 	return nil
 }
@@ -56,7 +56,7 @@ func CronParentConsumerWorkflow(ctx workflow.Context) error {
 	for i := 0; i < childWorkerCnt; i++ {
 		opts := workflow.ChildWorkflowOptions{
 			WorkflowID: fmt.Sprintf("consumer-child-%d", i),
-			TaskQueue:  childTaskQueueName,
+			// TaskQueue:  childTaskQueueName,
 		}
 		childCtx := workflow.WithChildOptions(ctx, opts)
 		future := workflow.ExecuteChildWorkflow(childCtx, ChildWorkflow)

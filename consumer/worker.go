@@ -29,21 +29,10 @@ func StartWorker(c client.Client) {
 	w.RegisterWorkflow(ChildWorkflow)
 	w.RegisterActivity(ConsumeMsg)
 
-	childWorker := worker.New(c, childTaskQueueName, worker.Options{})
-	childWorker.RegisterWorkflow(ChildWorkflow)
-	childWorker.RegisterActivity(ConsumeMsg)
-
 	go func() {
 		err := w.Run(worker.InterruptCh())
 		if err != nil {
 			log.Fatalf("Unable to start consumer worker: %v", err)
-		}
-	}()
-
-	go func() {
-		err := childWorker.Run(worker.InterruptCh())
-		if err != nil {
-			log.Fatalf("Unable to start consumer child worker: %v", err)
 		}
 	}()
 
